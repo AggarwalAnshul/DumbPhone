@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!--
+        Adding the gridlines
+    -->
+    <android.support.constraint.Guideline
+        android:id="@+id/leftGuideLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".55" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/rightGuideLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".95" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/topGuideLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".05" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/bottomGuideLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".15" />
+
+
+    <android.support.constraint.Guideline
+        android:id="@+id/leftGuideLineButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".15" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/rightGuideLineButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".95" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/topGuideLineButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.32" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/bottomGuideLineButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".50" />
+
+    <!--__________________ SETTING ACTIVITY TRANSITION _________________ -->
+    <Button
+        android:id="@+id/btn_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textSize="10dp"
+        android:textColor="@color/textColor"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <!--_________________________________________________________________ -->
+
+    <!-- ____________________ Date & Time Utility __________________ -->
+    <TextView
+        android:id="@+id/tv_currentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Time"
+        android:textColor="@color/textColor"
+        android:textSize="50sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/bottomGuideLine"
+        app:layout_constraintLeft_toLeftOf="@id/leftGuideLine"
+        app:layout_constraintLeft_toRightOf="@id/rightGuideLine"
+        app:layout_constraintTop_toTopOf="@id/topGuideLine" />
+
+    <TextView
+        android:id="@+id/tv_currentDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Date"
+        android:textColor="@color/textColor"
+        android:textSize="20sp"
+        app:layout_constraintRight_toRightOf="@id/rightGuideLine"
+        app:layout_constraintStart_toStartOf="@id/leftGuideLine"
+        app:layout_constraintTop_toBottomOf="@+id/tv_currentTime" />
+    <!--__________________ END OF DATE & TIME UTILITY ____________________-->
+
+
+    <!--_____________ FLEXBOX LAYOUT FOR THE APPLICATION BUTTONS _________ -->
+
+    <LinearLayout
+        android:id="@+id/flexboxLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/flexboxLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:alignContent="flex_start"
+        app:alignItems="flex_start"
+        app:dividerDrawable="@drawable/divider"
+        app:flexWrap="wrap"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:showDivider="beginning|middle" />-->
+    <!--_________________ END OF FLEXBOX LAYOUT __________________________ -->
+</android.support.constraint.ConstraintLayout>
