@@ -58,7 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.45" />
+        app:layout_constraintGuide_percent="0.40" />
 
     <android.support.constraint.Guideline
         android:id="@+id/bottomGuideLineButton"
@@ -67,18 +67,29 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent=".85" />
 
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/bottomRightAlignedGuideline"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="1.0"/>
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rightAlignedGuideline"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="1.0"/>
+
     <!--__________________ SETTING ACTIVITY TRANSITION _________________ -->
     <Button
         android:id="@+id/btn_settings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Settings"
-        android:textSize="10dp"
         android:textColor="@color/textColor"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="10dp"
+        app:layout_constraintRight_toLeftOf="@id/rightAlignedGuideline"
+        app:layout_constraintBottom_toTopOf="@id/bottomRightAlignedGuideline"/>
     <!--_________________________________________________________________ -->
 
     <!-- ____________________ Date & Time Utility __________________ -->

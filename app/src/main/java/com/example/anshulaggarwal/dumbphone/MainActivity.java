@@ -1,5 +1,6 @@
 package com.example.anshulaggarwal.dumbphone;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -65,13 +66,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     /*---------------- END OF DATABASE -----------------------------*/
 
 
+    @SuppressLint("WrongConstant")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         /*-------------------------HIDE THE STATUS BAR ---------------------------------------------*/
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         /*------------------------------------------------------------------------------------------*/
 
         setContentView(R.layout.activity_main);
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         /*-------------------------End of shared preference retrieval ------------------------------*/
 
         /*------------------------  Date & Time Utility --------------------------------------*/
-        Button btn_settings = (Button)findViewById(R.id.btn_settings);
+        Button btn_settings = (Button) findViewById(R.id.btn_settings);
         tv_currentTime = (TextView) findViewById(R.id.tv_currentTime);
         tv_currentDate = (TextView) findViewById(R.id.tv_currentDate);
         final Handler someHandler = new Handler(getMainLooper());
@@ -101,17 +103,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         }, 10);
 
-        if(APPLICATION_THEME.equals(DARK_THEME))
-        {
+        if (APPLICATION_THEME.equals(DARK_THEME)) {
             btn_settings.setBackgroundColor(Color.TRANSPARENT);
             tv_currentDate.setBackgroundColor(Color.BLACK);
             tv_currentTime.setBackgroundColor(Color.BLACK);
             tv_currentTime.setTextColor(Color.WHITE);
             tv_currentDate.setTextColor(Color.WHITE);
             btn_settings.setTextColor(Color.WHITE);
-        }
-        else
-        {
+        } else {
             btn_settings.setBackgroundColor(Color.TRANSPARENT);
             tv_currentDate.setBackgroundColor(Color.WHITE);
             tv_currentTime.setBackgroundColor(Color.WHITE);
@@ -158,30 +157,28 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 String dbRetrievedApplicationLabel = cursor.getString(1);
                 newButton.setText(dbRetrievedApplicationLabel);
             } else {
-                newButton.setText("Set application:" + button_count);
+                newButton.setText("Set Application " + button_count);
             }
             /*---------------------------------------------------------------------*/
 
             /*--------- Button properties -----------*/
             newButton.setBackgroundResource(R.drawable.btn_style);
-            if (APPLICATION_THEME.equals(DARK_THEME))
-            {
+            if (APPLICATION_THEME.equals(DARK_THEME)) {
                 newButton.setTextColor(Color.WHITE);
                 newButton.setBackgroundColor(Color.TRANSPARENT);
-            }
-            else
-            {
+            } else {
                 newButton.setTextColor(Color.BLACK);
                 newButton.setBackgroundColor(Color.TRANSPARENT);
             }
 
             newButton.setId(button_count);
-            newButton.setPadding(0, 0, 185, 20);
+            newButton.setPadding(0, 0, 185, 25);
             newButton.setTextAlignment(Gravity.RIGHT);
             newButton.setTextSize(30);
+          /*
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 newButton.setTypeface(Typeface.DEFAULT_BOLD);
-            }
+            }*/
             newButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             flexboxLayout.addView(newButton);
             Log.d(Tag, "Button: " + button_count + " added to the layout");
@@ -218,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                 ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
                                 String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
                                 myApplicationLabelList.add(applicationLabel);
-                                Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
+                            //    Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
                             } catch (PackageManager.NameNotFoundException e) {
                                 e.printStackTrace();
                             }
@@ -264,11 +261,73 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             newButton.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    return false;
+
+                    /*the application corresponding to this newButton has  not been selected yet*/
+                    sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Choose another application");
+                    final ArrayList<String> myApplicationLabelList = new ArrayList<>();
+
+
+                    final PackageManager packageManager = getPackageManager();
+                    final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+                    for (ApplicationInfo application : myInstalledApplicationInfoList) {
+                        String packageName = application.packageName;
+                        try {
+                            ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
+                            String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
+                            myApplicationLabelList.add(applicationLabel);
+                            Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
+                        } catch (PackageManager.NameNotFoundException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String packageName = myInstalledApplicationInfoList.get(which).packageName; /*retrieved package name using label*/
+                            String applicationLabel = myApplicationLabelList.get(which);
+                            Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
+                            packageManager.getLaunchIntentForPackage(packageName);
+                            buttonPackageName = packageName;
+                            buttonLabel = applicationLabel;
+                        }
+                    });
+                    builder.setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+
+                            /*Storing the selected application data into the database*/
+                            String query = "update " + BUTTON_DATA_TABLE_Name + " set " + BUTTON_DATA_TABLE_COLUMN_2
+                                    + " = " + " '" + buttonLabel + "' "+ ", " + BUTTON_DATA_TABLE_COLUMN_3
+                                    + " = " + " '" + buttonPackageName + "' " + " where " + BUTTON_DATA_TABLE_COLUMN_1
+                                    + " = " + finalButton_count + ";";
+                            sqLiteDatabase.execSQL(query);
+                            Log.d(Tag, "Query: "+query);
+                            Log.d(Tag, "Query updated for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
+                            Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
+                            newButton.setText(buttonLabel);
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    return true;
                 }
             });
             /*------------------------------------------------------------------- */
         }
+        sqLiteDatabase.close();
+
 
         /*-------------------- END OF APPLICATION LAUNCHING BUTTONS -------------------------*/
 
@@ -357,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
                 String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
                 myApplicationLabelList.add(applicationLabel);
-                Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
+              //  Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
