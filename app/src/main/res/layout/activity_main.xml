@@ -99,6 +99,23 @@
     <!--_________________________________________________________________ -->
 
     <!-- ____________________ Date & Time Utility __________________ -->
+
+    <TextView
+        android:id="@+id/tv_currentTimeHour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time"
+        android:textAlignment="textEnd"
+        android:textColor="@color/textColor"
+        android:textSize="50sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@id/topGuideLine"
+        app:layout_constraintBottom_toBottomOf="@id/bottomGuideLine"
+        app:layout_constraintEnd_toStartOf="@id/tv_currentTime"
+
+        />
+
+
     <TextView
         android:id="@+id/tv_currentTime"
         android:layout_width="wrap_content"
@@ -108,11 +125,10 @@
         android:textColor="@color/textColor"
         android:textSize="50sp"
         android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@id/topGuideLine"
         app:layout_constraintBottom_toBottomOf="@id/bottomGuideLine"
-        app:layout_constraintEnd_toStartOf="@+id/rightGuideLine"
-        app:layout_constraintLeft_toLeftOf="@id/leftGuideLine"
-        app:layout_constraintLeft_toRightOf="@id/rightGuideLine"
-        app:layout_constraintTop_toTopOf="@id/topGuideLine" />
+        app:layout_constraintRight_toRightOf="@id/rightGuideLine"
+        />
 
     <TextView
         android:id="@+id/tv_currentDate"
@@ -122,10 +138,10 @@
         android:textAlignment="textEnd"
         android:textColor="@color/textColor"
         android:textSize="20sp"
-        app:layout_constraintRight_toRightOf="@id/rightGuideLine"
+        app:layout_constraintEnd_toStartOf="@+id/rightGuideLine"
         app:layout_constraintLeft_toLeftOf="@+id/leftGuideLine"
-        app:layout_constraintEnd_toEndOf="@id/rightGuideLine"
         app:layout_constraintTop_toBottomOf="@+id/tv_currentTime" />
+
     <!--__________________ END OF DATE & TIME UTILITY ____________________-->
 
 

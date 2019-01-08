@@ -50,7 +50,7 @@ import java.util.Calendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
-    TextView tv_currentDate, tv_currentTime;
+    TextView tv_currentDate, tv_currentTimeMinutes, tv_currentTimeHour;
     public static final String Tag = "------------------->";
     public static String buttonPackageName = null;
     public static String buttonLabel = "Select Custom Application";
@@ -145,8 +145,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         /*------------------------ Getting theme shared preference --------------------------*/
         ConstraintLayout constraintLayout = (ConstraintLayout) findViewById(R.id.constraintLayout);
+
+        SharedPreferences sharedPreferencesHourRedColor = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean hour_color_is_red = sharedPreferencesHourRedColor.getBoolean("hour_color", Boolean.TRUE);
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         APPLICATION_THEME = sharedPreferences.getString("colorMode", "");
+
         if (APPLICATION_THEME.equals(DARK_THEME)) {
             constraintLayout.setBackgroundColor(Color.BLACK);
 
@@ -157,8 +162,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         /*------------------------  Date & Time Utility --------------------------------------*/
         Button btn_settings = (Button) findViewById(R.id.btn_settings);
-        tv_currentTime = (TextView) findViewById(R.id.tv_currentTime);
+        tv_currentTimeMinutes = (TextView) findViewById(R.id.tv_currentTime);
         tv_currentDate = (TextView) findViewById(R.id.tv_currentDate);
+        tv_currentTimeHour = (TextView) findViewById(R.id.tv_currentTimeHour);
+        tv_currentTimeHour.setTextColor(Color.RED);
         final Handler someHandler = new Handler(getMainLooper());
         someHandler.postDelayed(new Runnable() {
             @Override
@@ -168,18 +175,31 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
         }, 10);
 
+
         if (APPLICATION_THEME.equals(DARK_THEME)) {
             btn_settings.setBackgroundColor(Color.TRANSPARENT);
             tv_currentDate.setBackgroundColor(Color.BLACK);
-            tv_currentTime.setBackgroundColor(Color.BLACK);
-            tv_currentTime.setTextColor(Color.WHITE);
+
+            if (hour_color_is_red.equals(Boolean.FALSE)) {
+                tv_currentTimeHour.setTextColor(Color.WHITE);
+                tv_currentTimeHour.setBackgroundColor(Color.TRANSPARENT);
+            }
+            tv_currentTimeMinutes.setTextColor(Color.WHITE);
+            tv_currentTimeMinutes.setBackgroundColor(Color.TRANSPARENT);
+
             tv_currentDate.setTextColor(Color.WHITE);
             btn_settings.setTextColor(Color.WHITE);
         } else {
             btn_settings.setBackgroundColor(Color.TRANSPARENT);
             tv_currentDate.setBackgroundColor(Color.WHITE);
-            tv_currentTime.setBackgroundColor(Color.WHITE);
-            tv_currentTime.setTextColor(Color.BLACK);
+
+            if (hour_color_is_red.equals(Boolean.FALSE)) {
+                tv_currentTimeHour.setTextColor(Color.BLACK);
+                tv_currentTimeHour.setBackgroundColor(Color.TRANSPARENT);
+            }
+            tv_currentTimeMinutes.setTextColor(Color.BLACK);
+            tv_currentTimeMinutes.setBackgroundColor(Color.TRANSPARENT);
+
             tv_currentDate.setTextColor(Color.BLACK);
             btn_settings.setTextColor(Color.BLACK);
         }
@@ -491,9 +511,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     /*Function updates the current date and time of the phone, for the time and date utility*/
     private void showDateTime() {
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat simpleDateFormatHour = new SimpleDateFormat("HH ");
+        SimpleDateFormat simpleDateFormatMinutes = new SimpleDateFormat(": mm");
         SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("MMMM dd, EEE");
-        tv_currentTime.setText(simpleDateFormat.format(calendar.getTime()));
+        tv_currentTimeMinutes.setText(simpleDateFormatMinutes.format(calendar.getTime()));
+        tv_currentTimeHour.setText(simpleDateFormatHour.format(calendar.getTime()));
         tv_currentDate.setText(simpleDateFormatDate.format(calendar.getTime()));
     }
 
