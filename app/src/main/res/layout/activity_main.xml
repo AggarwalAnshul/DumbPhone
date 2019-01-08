@@ -38,20 +38,12 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent=".15" />
 
-
     <android.support.constraint.Guideline
         android:id="@+id/leftGuideLineButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent=".07" />
-
-   <!-- <android.support.constraint.Guideline
-        android:id="@+id/rightGuideLineButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="391dp" />-->
+        app:layout_constraintGuide_percent="0.09" />
 
     <android.support.constraint.Guideline
         android:id="@+id/topGuideLineButton"
@@ -74,12 +66,23 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent=".95"/>
 
-    <!--<android.support.constraint.Guideline
-        android:id="@+id/rightAlignedGuideline"
+    <!-- _________________ GUIDELINES FOR EXIT BUTTON _________________ -->
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guidelineHorizontal.03"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.04" />
+
+    <android.support.constraint.Guideline
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-     app:layout_constraintGuide_percent="1.0" />-->
+        app:layout_constraintGuide_percent=".02"
+        android:id="@+id/guidelineVertical.03"/>
+
+    <!--- _____________________________________________________________ -->
 
     <!--__________________ SETTING ACTIVITY TRANSITION _________________ -->
     <Button
@@ -89,7 +92,8 @@
         android:text="Settings"
         android:textAlignment="textEnd"
         android:textColor="@color/textColor"
-        android:textSize="10dp"
+        android:textSize="12dp"
+        android:tooltipText="Open the application settings"
         app:layout_constraintRight_toLeftOf="@id/rightGuideLine"
         app:layout_constraintBottom_toTopOf="@id/bottomRightAlignedGuideline"/>
     <!--_________________________________________________________________ -->
@@ -125,7 +129,44 @@
     <!--__________________ END OF DATE & TIME UTILITY ____________________-->
 
 
-    <!--_____________ FLEXBOX LAYOUT FOR THE APPLICATION BUTTONS _________ -->
+    <Button
+        android:id="@+id/btn_exit"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ic_exit"
+        android:tooltipText="Exit the application"
+        app:layout_constraintBottom_toTopOf="@id/guidelineHorizontal.03"
+        app:layout_constraintEnd_toStartOf="@+id/leftGuideLineButton"
+        app:layout_constraintStart_toStartOf="@+id/guidelineVertical.03"
+        app:layout_constraintTop_toTopOf="@+id/topGuideLine" />
+
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent=".92"
+        android:id="@+id/guidelineHorizontal.91"/>
+
+    <android.support.constraint.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".08"
+        android:id="@+id/guidelineVertical.08"/>
+
+    <Button
+        android:id="@+id/btn_dialler"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ic_dialler"
+        android:tooltipText="Open the dialler for calling"
+        app:layout_constraintBottom_toTopOf="@+id/bottomRightAlignedGuideline"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineVertical.08"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/guidelineVertical.03"
+        app:layout_constraintTop_toTopOf="@+id/guidelineHorizontal.91" />
+
+    <!--_____________ LINEAR LAYOUT FOR THE APPLICATION BUTTONS _________ -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"

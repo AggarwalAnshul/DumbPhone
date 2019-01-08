@@ -4,6 +4,10 @@
     <string name="Dark_Mode">Dark Mode</string>
     <string name="Light_Mode">Light Mode</string>
 
+    <string name="show">Visible</string>
+    <string name="hide">Invisible</string>
+    <string name="gone">Remove</string>
+
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->

@@ -2,21 +2,28 @@ package com.example.anshulaggarwal.dumbphone;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.view.KeyEventDispatcher;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -80,7 +87,50 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         actionBar.hide();
         /*-------------------- END OF ACTION BAR HIDING CODE -------------------------------------*/
 
+
+        /*---------------------EXIT & DIALLER BUTTON -------------------------------------------------------*/
         setContentView(R.layout.activity_main);
+        Button btn_exit = (Button) findViewById(R.id.btn_exit);
+        Button btn_dialler = (Button) findViewById(R.id.btn_dialler);
+        btn_exit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.this.finishAffinity();
+            }
+        });
+
+
+
+        /*-------------------- Checking if this is the default application -----------------------*/
+        if (isMyApplicationDefault() == Boolean.FALSE) {
+            btn_dialler.setEnabled(false);
+            btn_dialler.setVisibility(View.INVISIBLE);
+            Log.d(Tag, "The Application is not Default");
+        }
+
+        btn_dialler.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Intent.ACTION_DIAL));
+            }
+        });
+
+        /*----------------------------------------------------------------------------------------*/
+
+        SharedPreferences buttonSharedPreference = PreferenceManager.getDefaultSharedPreferences(this);
+        if (buttonSharedPreference.getString("colorMode", "").equals(DARK_THEME)) {
+            btn_exit.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+            btn_dialler.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        }
+        String choice = buttonSharedPreference.getString("show_exit_button", "");
+        if (choice.equals(getString(R.string.hide))) {
+            btn_exit.setVisibility(View.INVISIBLE);
+        } else if (choice.equals(getString(R.string.gone))) {
+            btn_exit.setVisibility(View.GONE);
+            btn_exit.setEnabled(false);
+        }
+        /*-------------------- END OF EXIT BUTTON ------------------------------------------------*/
+
 
         /*------------------------ Getting theme shared preference --------------------------*/
         ConstraintLayout constraintLayout = (ConstraintLayout) findViewById(R.id.constraintLayout);
@@ -208,6 +258,18 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
                         final PackageManager packageManager = getPackageManager();
                         final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+
+                        /*Excluding system application from the list*/
+                        int size = myInstalledApplicationInfoList.size();
+                        for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
+                            ApplicationInfo application = myInstalledApplicationInfoList.get(applicationIterator);
+                            if (isSystemPackage(application) == Boolean.TRUE) {
+                                myInstalledApplicationInfoList.remove(application);
+                                size -= 1;
+                            }
+                        }
+
+
                         for (ApplicationInfo application : myInstalledApplicationInfoList) {
                             String packageName = application.packageName;
                             try {
@@ -270,6 +332,18 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
                     final PackageManager packageManager = getPackageManager();
                     final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+
+
+                    /*Excluding system application from the list*/
+                    int size = myInstalledApplicationInfoList.size();
+                    for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
+                        ApplicationInfo application = myInstalledApplicationInfoList.get(applicationIterator);
+                        if (isSystemPackage(application) == Boolean.TRUE) {
+                            myInstalledApplicationInfoList.remove(application);
+                            size -= 1;
+                        }
+                    }
+
                     for (ApplicationInfo application : myInstalledApplicationInfoList) {
                         String packageName = application.packageName;
                         try {
@@ -332,14 +406,39 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     }
 
+
+    /*------------------------ CHCEKS IS THIS APPLICATION IS DEFUALT ------------------------*/
+    private boolean isMyApplicationDefault() {
+        final IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MAIN);
+        intentFilter.addCategory(Intent.CATEGORY_HOME);
+        List<IntentFilter> intentFilterList = new ArrayList<>();
+        intentFilterList.add(intentFilter);
+        final String myApplicationPackageName = getPackageName();
+        List<ComponentName> componentNameList = new ArrayList<>();
+        getPackageManager().getPreferredActivities(intentFilterList, componentNameList, null);
+        for (ComponentName componentName : componentNameList) {
+            Log.d(Tag, "\tCompononent name:  "+componentName);
+            if (myApplicationPackageName.equals(componentName.getPackageName()))
+                return true;
+        }
+        return false;
+    }
+    /*----------------------------------------------------------------------------------------*/
+
     /*------------------------ FOR WORKING WITH SETTINGS ------------------------------------*/
     private void settingsSharedPreferences() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
     /*------------------------ END OF SETTINGS ACCESSION -----------------------------------*/
-    /*-------------------- FOR NAVIGATION DOTS TO SETTINGS ACTIVITY ---------------------*/
 
+    /*------------------------ FOR EXCLUDING ANY SYSTEM APPLLICATIONS ---------------------*/
+    private boolean isSystemPackage(ApplicationInfo pkgInfo) {
+        return ((pkgInfo.flags & pkgInfo.FLAG_SYSTEM) != 0);
+    }
+    /*-------------------------------------------------------------------------------------*/
+
+    /*-------------------- FOR NAVIGATION DOTS TO SETTINGS ACTIVITY ---------------------*/
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
@@ -356,11 +455,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
         return super.onOptionsItemSelected(item);
     }
-
     /*-------------------- END OF NAVIGATION DOTS TO SETTINGS ACTIVITY ------------------*/
 
 
     /*_____________________________ END OF ON CREATE _______________________________________*/
+
+    @Override
+    public void onBackPressed() {
+        /*Do nothing*/
+    }
 
     /*Function updates the current date and time of the phone, for the time and date utility*/
     private void showDateTime() {
@@ -400,7 +503,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Log.d(Tag, "Table created");
         sqLiteDatabase.close();
     }
-
 
     private void selectApplication() {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -459,6 +561,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void changeApplicationCount(String application_count) {
         applicationCount = Integer.parseInt(application_count);
-        Toast.makeText(this, "Changed application count registered to: " + application_count, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Changed application count registered to: " + application_count, Toast.LENGTH_SHORT).show();
     }
 }
