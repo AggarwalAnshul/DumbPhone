@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -174,8 +176,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
 
             newButton.setId(button_count);
-            newButton.setPadding(90, 0, 185, 20);
+            newButton.setPadding(0, 0, 185, 20);
             newButton.setTextAlignment(Gravity.RIGHT);
+            newButton.setTextSize(30);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                newButton.setTypeface(Typeface.DEFAULT_BOLD);
+            }
             newButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             flexboxLayout.addView(newButton);
             Log.d(Tag, "Button: " + button_count + " added to the layout");
