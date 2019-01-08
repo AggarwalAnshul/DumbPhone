@@ -73,7 +73,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.04" />
+        app:layout_constraintGuide_percent="0.05" />
 
     <android.support.constraint.Guideline
         android:layout_width="wrap_content"
@@ -131,8 +131,8 @@
 
     <Button
         android:id="@+id/btn_exit"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="19dp"
+        android:layout_height="15dp"
         android:background="@drawable/ic_exit"
         android:tooltipText="Exit the application"
         app:layout_constraintBottom_toTopOf="@id/guidelineHorizontal.03"

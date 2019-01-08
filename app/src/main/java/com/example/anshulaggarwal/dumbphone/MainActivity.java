@@ -2,6 +2,7 @@ package com.example.anshulaggarwal.dumbphone;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Notification;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,6 +21,8 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.constraint.ConstraintLayout;
@@ -100,6 +103,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         });
 
 
+      /*  if (isMyApplicationDefault() == Boolean.FALSE) {
+
+            vibrate();
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            startActivity(Intent.createChooser(intent, "You are just one step away from life!" +
+                    "\nPlease Select DumbPhone to make it the default launcher"));
+        }*/
 
         /*-------------------- Checking if this is the default application -----------------------*/
         if (isMyApplicationDefault() == Boolean.FALSE) {
@@ -192,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linearLayout);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        applicationCount = Integer.parseInt(sharedPreferences.getString("application_count", ""));
+        applicationCount = Integer.parseInt(sharedPreferences.getString("application_count", "3"));
         //Toast.makeText(this, "The value of application Count is: " + applicationCount, Toast.LENGTH_SHORT).show();
         sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
         for (int button_count = 0; button_count < applicationCount; button_count += 1) {
@@ -323,6 +334,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 @Override
                 public boolean onLongClick(View v) {
 
+
+                    vibrate();
+
                     /*the application corresponding to this newButton has  not been selected yet*/
                     sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -406,6 +420,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     }
 
+    private void vibrate() {
+        Vibrator vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vib.vibrate(VibrationEffect.createOneShot(400, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vib.vibrate(500);
+        }
+    }
+
 
     /*------------------------ CHCEKS IS THIS APPLICATION IS DEFUALT ------------------------*/
     private boolean isMyApplicationDefault() {
@@ -417,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         List<ComponentName> componentNameList = new ArrayList<>();
         getPackageManager().getPreferredActivities(intentFilterList, componentNameList, null);
         for (ComponentName componentName : componentNameList) {
-            Log.d(Tag, "\tCompononent name:  "+componentName);
+            Log.d(Tag, "\tCompononent name:  " + componentName);
             if (myApplicationPackageName.equals(componentName.getPackageName()))
                 return true;
         }
