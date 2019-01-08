@@ -2,11 +2,14 @@
 
     <!-- Base application theme. -->
     <!--removed the action bar to give a more promising feel of a launcher application-->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item><!-- manually added to
+prevent the app from crashing due to the effect of fragment shared preferance based settings activity
+ -->
     </style>
 
 </resources>

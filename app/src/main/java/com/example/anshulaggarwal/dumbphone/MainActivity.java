@@ -3,17 +3,27 @@ package com.example.anshulaggarwal.dumbphone;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -28,11 +38,16 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     TextView tv_currentDate, tv_currentTime;
     public static final String Tag = "------------------->";
     public static String buttonPackageName = null;
     public static String buttonLabel = "Select Custom Application";
+
+    SharedPreferences sharedPreferences;
+    public static String DARK_THEME = "Dark Mode";
+    public static String APPLICATION_THEME = DARK_THEME;
+
     /*---------DATABASE---------------------------------------------*/
     SQLiteDatabase sqLiteDatabase;
     public static final String DATABASE_NAME = "DumbPhoneDb";
@@ -51,9 +66,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        /*-------------------------HIDE THE STATUS BAR ---------------------------------------------*/
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        /*------------------------------------------------------------------------------------------*/
+
         setContentView(R.layout.activity_main);
 
+        /*------------------------ Getting theme shared preference --------------------------*/
+        ConstraintLayout constraintLayout = (ConstraintLayout) findViewById(R.id.constraintLayout);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        APPLICATION_THEME = sharedPreferences.getString("colorMode", "");
+        if (APPLICATION_THEME.equals(DARK_THEME)) {
+            constraintLayout.setBackgroundColor(Color.BLACK);
+
+        } else {
+            constraintLayout.setBackgroundColor(Color.WHITE);
+        }
+        /*-------------------------End of shared preference retrieval ------------------------------*/
+
         /*------------------------  Date & Time Utility --------------------------------------*/
+        Button btn_settings = (Button)findViewById(R.id.btn_settings);
         tv_currentTime = (TextView) findViewById(R.id.tv_currentTime);
         tv_currentDate = (TextView) findViewById(R.id.tv_currentDate);
         final Handler someHandler = new Handler(getMainLooper());
@@ -64,13 +98,34 @@ public class MainActivity extends AppCompatActivity {
                 someHandler.postDelayed(this, 1000);
             }
         }, 10);
+
+        if(APPLICATION_THEME.equals(DARK_THEME))
+        {
+            btn_settings.setBackgroundColor(Color.TRANSPARENT);
+            tv_currentDate.setBackgroundColor(Color.BLACK);
+            tv_currentTime.setBackgroundColor(Color.BLACK);
+            tv_currentTime.setTextColor(Color.WHITE);
+            tv_currentDate.setTextColor(Color.WHITE);
+            btn_settings.setTextColor(Color.WHITE);
+        }
+        else
+        {
+            btn_settings.setBackgroundColor(Color.TRANSPARENT);
+            tv_currentDate.setBackgroundColor(Color.WHITE);
+            tv_currentTime.setBackgroundColor(Color.WHITE);
+            tv_currentTime.setTextColor(Color.BLACK);
+            tv_currentDate.setTextColor(Color.BLACK);
+            btn_settings.setTextColor(Color.BLACK);
+        }
+        settingsSharedPreferences();
+
         /*-------------------- End of Date & Time Utility -----------------------------------*/
 
-        Button btn_settings = (Button)findViewById(R.id.btn_settings);
+        btn_settings = (Button) findViewById(R.id.btn_settings);
         btn_settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+                startActivity(new Intent(MainActivity.this, com.example.anshulaggarwal.dumbphone.Settings.class));
             }
         });
 
@@ -84,7 +139,11 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout flexboxLayout = (LinearLayout) findViewById(R.id.flexboxLayout);
         /*      flexboxLayout.setFlexDirection(FlexDirection.ROW);*/
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        applicationCount = Integer.parseInt(sharedPreferences.getString("application_count", ""));
+        Toast.makeText(this, "The value of application Count is: " + applicationCount, Toast.LENGTH_SHORT).show();
         sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+        Log.d(Tag, "Recieved shared preference value is: " + applicationCount + "");
         for (int button_count = 0; button_count < applicationCount; button_count += 1) {
             //Log.d(Tag, "button_coun value is: " + button_count);
             final Button newButton = new Button(this);
@@ -102,23 +161,22 @@ public class MainActivity extends AppCompatActivity {
             /*---------------------------------------------------------------------*/
 
             /*--------- Button properties -----------*/
-            newButton.setTextColor(Color.WHITE);
-            newButton.setId(button_count);
-            newButton.setBackgroundColor(Color.BLUE);
             newButton.setBackgroundResource(R.drawable.btn_style);
-            newButton.setPadding(185, 0, 185, 0);
+            if (APPLICATION_THEME.equals(DARK_THEME))
+            {
+                newButton.setTextColor(Color.WHITE);
+                newButton.setBackgroundColor(Color.TRANSPARENT);
+            }
+            else
+            {
+                newButton.setTextColor(Color.BLACK);
+                newButton.setBackgroundColor(Color.TRANSPARENT);
+            }
 
-            /*
-            newButton.setLayoutParams(new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.WRAP_CONTENT, FlexboxLayout.LayoutParams.WRAP_CONTENT));
-            */
-
-            /* ---------------- Dummy button to add the desired spacing -------------*/
-            Button dummyButton = new Button(this);
-            dummyButton.setId(button_count * 100);
-            dummyButton.setBackgroundColor(Color.TRANSPARENT);
-            flexboxLayout.addView(dummyButton);
-            /* ---------------------------------------------------------------------- */
-
+            newButton.setId(button_count);
+            newButton.setPadding(90, 0, 185, 20);
+            newButton.setTextAlignment(Gravity.RIGHT);
+            newButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             flexboxLayout.addView(newButton);
             Log.d(Tag, "Button: " + button_count + " added to the layout");
             /*-----------------------------------------*/
@@ -197,13 +255,46 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
+            newButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    return false;
+                }
+            });
             /*------------------------------------------------------------------- */
         }
 
         /*-------------------- END OF APPLICATION LAUNCHING BUTTONS -------------------------*/
 
-
     }
+
+    /*------------------------ FOR WORKING WITH SETTINGS ------------------------------------*/
+    private void settingsSharedPreferences() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+    /*------------------------ END OF SETTINGS ACCESSION -----------------------------------*/
+    /*-------------------- FOR NAVIGATION DOTS TO SETTINGS ACTIVITY ---------------------*/
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(this, com.example.anshulaggarwal.dumbphone.Settings.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /*-------------------- END OF NAVIGATION DOTS TO SETTINGS ACTIVITY ------------------*/
+
 
     /*_____________________________ END OF ON CREATE _______________________________________*/
 
@@ -295,4 +386,15 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals("application_count")) {
+            changeApplicationCount(sharedPreferences.getString("application_count", "3"));
+        }
+    }
+
+    private void changeApplicationCount(String application_count) {
+        applicationCount = Integer.parseInt(application_count);
+        Toast.makeText(this, "Changed application count registered to: " + application_count, Toast.LENGTH_SHORT).show();
+    }
 }
