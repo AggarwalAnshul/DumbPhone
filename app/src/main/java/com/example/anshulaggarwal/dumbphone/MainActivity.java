@@ -1,6 +1,7 @@
 package com.example.anshulaggarwal.dumbphone;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.constraint.ConstraintLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,12 +31,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.flexbox.FlexDirection;
-import com.google.android.flexbox.FlexboxLayout;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,15 +64,21 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     /*---------------- END OF DATABASE -----------------------------*/
 
 
-    @SuppressLint("WrongConstant")
+    @TargetApi(Build.VERSION_CODES.M)
+    @SuppressLint({"WrongConstant", "NewApi"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        /*-------------------------HIDE THE STATUS BAR ---------------------------------------------*/
+        /*-------------------------HIDE THE STATUS BAR -------------------------------------------*/
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        /*------------------------------------------------------------------------------------------*/
+        /*----------------------------------------------------------------------------------------*/
+
+        /*---------------------- HIDING THE ACTION BAR -------------------------------------------*/
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
+        /*-------------------- END OF ACTION BAR HIDING CODE -------------------------------------*/
 
         setContentView(R.layout.activity_main);
 
@@ -119,9 +123,10 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             btn_settings.setTextColor(Color.BLACK);
         }
         settingsSharedPreferences();
-
         /*-------------------- End of Date & Time Utility -----------------------------------*/
 
+
+        /*-------------------- NAVIGATION TO SETTINGS INTERFACE ----------------------------*/
         btn_settings = (Button) findViewById(R.id.btn_settings);
         btn_settings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,24 +134,20 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 startActivity(new Intent(MainActivity.this, com.example.anshulaggarwal.dumbphone.Settings.class));
             }
         });
+        /*--------------------  END OF SETTING INTERFACE NAVIGATION------------------------*/
 
 
         /*-------------------- For Application Launching Buttons ----------------------------*/
-
-        // this.deleteDatabase(DATABASE_NAME+".db");
-        Log.d(Tag, "Database deleted...");
         createTable();
-        applicationCount = getApplicationCount();
-        LinearLayout flexboxLayout = (LinearLayout) findViewById(R.id.flexboxLayout);
-        /*      flexboxLayout.setFlexDirection(FlexDirection.ROW);*/
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linearLayout);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         applicationCount = Integer.parseInt(sharedPreferences.getString("application_count", ""));
-        Toast.makeText(this, "The value of application Count is: " + applicationCount, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "The value of application Count is: " + applicationCount, Toast.LENGTH_SHORT).show();
         sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
-        Log.d(Tag, "Recieved shared preference value is: " + applicationCount + "");
         for (int button_count = 0; button_count < applicationCount; button_count += 1) {
-            //Log.d(Tag, "button_coun value is: " + button_count);
+
+            //Log.d(Tag, "button_count value is: " + button_count);
             final Button newButton = new Button(this);
             Cursor cursor = sqLiteDatabase.rawQuery("select * from " + BUTTON_DATA_TABLE_Name + " where id=" + Integer.toString(button_count) + ";", null);
             cursor.moveToFirst();
@@ -171,16 +172,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 newButton.setBackgroundColor(Color.TRANSPARENT);
             }
 
+            newButton.setTextAppearance(Typeface.BOLD);
             newButton.setId(button_count);
-            newButton.setPadding(0, 0, 185, 25);
+            newButton.setPadding(0, 0, 185, 35);
             newButton.setTextAlignment(Gravity.RIGHT);
             newButton.setTextSize(30);
-          /*
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                newButton.setTypeface(Typeface.DEFAULT_BOLD);
-            }*/
             newButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            flexboxLayout.addView(newButton);
+            linearLayout.addView(newButton);
             Log.d(Tag, "Button: " + button_count + " added to the layout");
             /*-----------------------------------------*/
 
@@ -191,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 @Override
                 public void onClick(View v) {
 
+                    sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
                     Cursor cursor = sqLiteDatabase.rawQuery("select * from " + BUTTON_DATA_TABLE_Name + " where id=" + Integer.toString(finalButton_count) + ";", null);
                     cursor.moveToFirst();
                     Log.d(Tag, "Cursor count for button count: " + finalButton_count + " is: " + cursor.getCount());
@@ -215,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                 ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
                                 String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
                                 myApplicationLabelList.add(applicationLabel);
-                            //    Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
+                                //    Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
                             } catch (PackageManager.NameNotFoundException e) {
                                 e.printStackTrace();
                             }
@@ -302,11 +301,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
                             /*Storing the selected application data into the database*/
                             String query = "update " + BUTTON_DATA_TABLE_Name + " set " + BUTTON_DATA_TABLE_COLUMN_2
-                                    + " = " + " '" + buttonLabel + "' "+ ", " + BUTTON_DATA_TABLE_COLUMN_3
+                                    + " = " + " '" + buttonLabel + "' " + ", " + BUTTON_DATA_TABLE_COLUMN_3
                                     + " = " + " '" + buttonPackageName + "' " + " where " + BUTTON_DATA_TABLE_COLUMN_1
                                     + " = " + finalButton_count + ";";
                             sqLiteDatabase.execSQL(query);
-                            Log.d(Tag, "Query: "+query);
+                            Log.d(Tag, "Query: " + query);
                             Log.d(Tag, "Query updated for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
                             Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
                             newButton.setText(buttonLabel);
@@ -416,7 +415,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
                 String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
                 myApplicationLabelList.add(applicationLabel);
-              //  Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
+                //  Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
