@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
@@ -44,13 +45,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
-    TextView tv_currentDate, tv_currentTimeMinutes, tv_currentTimeHour;
+    TextView tv_currentDate, tv_currentTimeMinutes, tv_currentTimeHour, tv_currentTimeSeparator;
     public static final String Tag = "------------------->";
     public static String buttonPackageName = null;
     public static String buttonLabel = "Select Custom Application";
@@ -150,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Boolean hour_color_is_red = sharedPreferencesHourRedColor.getBoolean("hour_color", Boolean.TRUE);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        APPLICATION_THEME = sharedPreferences.getString("colorMode", "");
+        APPLICATION_THEME = sharedPreferences.getString("colorMode", DARK_THEME);
 
         if (APPLICATION_THEME.equals(DARK_THEME)) {
             constraintLayout.setBackgroundColor(Color.BLACK);
@@ -165,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         tv_currentTimeMinutes = (TextView) findViewById(R.id.tv_currentTime);
         tv_currentDate = (TextView) findViewById(R.id.tv_currentDate);
         tv_currentTimeHour = (TextView) findViewById(R.id.tv_currentTimeHour);
+        tv_currentTimeSeparator = (TextView) findViewById(R.id.tv_currentTimeSeparator);
         tv_currentTimeHour.setTextColor(Color.RED);
         final Handler someHandler = new Handler(getMainLooper());
         someHandler.postDelayed(new Runnable() {
@@ -185,6 +191,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 tv_currentTimeHour.setBackgroundColor(Color.TRANSPARENT);
             }
             tv_currentTimeMinutes.setTextColor(Color.WHITE);
+            tv_currentTimeSeparator.setTextColor(Color.WHITE);
+            tv_currentTimeSeparator.setBackgroundColor(Color.TRANSPARENT);
             tv_currentTimeMinutes.setBackgroundColor(Color.TRANSPARENT);
 
             tv_currentDate.setTextColor(Color.WHITE);
@@ -199,7 +207,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             }
             tv_currentTimeMinutes.setTextColor(Color.BLACK);
             tv_currentTimeMinutes.setBackgroundColor(Color.TRANSPARENT);
-
+            tv_currentTimeSeparator.setTextColor(Color.BLACK);
+            tv_currentTimeSeparator.setBackgroundColor(Color.TRANSPARENT);
             tv_currentDate.setTextColor(Color.BLACK);
             btn_settings.setTextColor(Color.BLACK);
         }
@@ -232,8 +241,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             final Button newButton = new Button(this);
             Cursor cursor = sqLiteDatabase.rawQuery("select * from " + BUTTON_DATA_TABLE_Name + " where id=" + Integer.toString(button_count) + ";", null);
             cursor.moveToFirst();
-            
-            /*---------------- Code excerpt for naming the button based on previous 
+
+            /*---------------- Code excerpt for naming the button based on previous
                                 user applications selection -----------------------*/
             if (cursor.getCount() > 0) {
                 String dbRetrievedApplicationLabel = cursor.getString(1);
@@ -270,6 +279,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 @Override
                 public void onClick(View v) {
 
+                    vibrate();
+
                     sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
                     Cursor cursor = sqLiteDatabase.rawQuery("select * from " + BUTTON_DATA_TABLE_Name + " where id=" + Integer.toString(finalButton_count) + ";", null);
                     cursor.moveToFirst();
@@ -299,6 +310,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                 size -= 1;
                             }
                         }
+
+                        /*To sort the list of the applications*/
+                        Collections.sort(myInstalledApplicationInfoList, new PackageItemInfo.DisplayNameComparator(packageManager));
 
 
                         for (ApplicationInfo application : myInstalledApplicationInfoList) {
@@ -378,6 +392,47 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         }
                     }
 
+                    /*sorting the myInstalledApplicationInfoList*/
+                    /*final PackageItemInfo.DisplayNameComparator comparator = new PackageItemInfo.DisplayNameComparator(packageManager);
+                    Collections.sort()
+*/
+                    /*--------------------------------------------------------------------------*/
+                    Collections.sort(myInstalledApplicationInfoList, new ApplicationInfo.DisplayNameComparator(packageManager));
+                    /*------------------------------------------------------------------------- */
+
+
+                    /*---------------------OBSOLETE APPROACH----------------------------*/
+                    /*This approach led to huge time complexity and was causing a significant amount
+                    * of time delay noticiable to 8.0+ seconds hence moving towards a more streamlined
+                    * version of sorting algorithm*/
+                   /* int tempSize = myInstalledApplicationInfoList.size();
+                    for (int i = 0; i < tempSize - 1; i++) {
+                        for (int j = 0; j < tempSize - 1 - i; j++) {
+                            ApplicationInfo a = myInstalledApplicationInfoList.get(j);
+                            ApplicationInfo b = myInstalledApplicationInfoList.get(j + 1);
+                            if (returnApplicationLabel(a).compareTo(returnApplicationLabel(b)) > 0) {
+                                ApplicationInfo temp = a;
+                                myInstalledApplicationInfoList.set(j, b);
+                                myInstalledApplicationInfoList.set(j + 1, temp);
+                            }
+                        }
+                    }*/
+                   /*--------------------------------------------------------*/
+
+/*DISABLED TO CHECK WHETHER REDUCITON IN RUNNIG TIME TO FETCH APPLICATIONS ? */
+                   /* Log.d(Tag, "List Sorted:");
+                    for (ApplicationInfo element : myInstalledApplicationInfoList) {
+                        Log.d(Tag, "\telement");
+                    }
+*/
+
+                    /*Adding the Application's label from the returned list of installed applications*/
+                   /* List<String> ApplicationLabel = new ArrayList<>();
+                    for(ApplicationInfo element : myInstalledApplicationInfoList){
+                        ApplicationLabel.add(returnApplicationLabel(element));
+                    }
+*/
+
                     for (ApplicationInfo application : myInstalledApplicationInfoList) {
                         String packageName = application.packageName;
                         try {
@@ -437,6 +492,21 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
         /*-------------------- END OF APPLICATION LAUNCHING BUTTONS -------------------------*/
+
+    }
+
+    private String returnApplicationLabel(ApplicationInfo applicationInfo) {
+        String packageName = applicationInfo.packageName;
+
+        PackageManager packageManager = this.getPackageManager();
+        ApplicationInfo thisApplicationInfo = null;
+        try {
+            thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
+        return applicationLabel;
 
     }
 
@@ -511,8 +581,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     /*Function updates the current date and time of the phone, for the time and date utility*/
     private void showDateTime() {
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat simpleDateFormatHour = new SimpleDateFormat("HH ");
-        SimpleDateFormat simpleDateFormatMinutes = new SimpleDateFormat(": mm");
+        SimpleDateFormat simpleDateFormatHour = new SimpleDateFormat("HH");
+        SimpleDateFormat simpleDateFormatMinutes = new SimpleDateFormat("mm");
         SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("MMMM dd, EEE");
         tv_currentTimeMinutes.setText(simpleDateFormatMinutes.format(calendar.getTime()));
         tv_currentTimeHour.setText(simpleDateFormatHour.format(calendar.getTime()));
