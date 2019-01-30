@@ -52,7 +52,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+
+import javax.security.auth.callback.PasswordCallback;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     TextView tv_currentDate, tv_currentTimeMinutes, tv_currentTimeHour, tv_currentTimeSeparator;
@@ -248,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 String dbRetrievedApplicationLabel = cursor.getString(1);
                 newButton.setText(dbRetrievedApplicationLabel);
             } else {
-                newButton.setText("Set Application " + button_count);
+                newButton.setText("Set Application " + (button_count+1) );
             }
             /*---------------------------------------------------------------------*/
 
@@ -299,39 +302,60 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         final ArrayList<String> myApplicationLabelList = new ArrayList<>();
 
                         final PackageManager packageManager = getPackageManager();
-                        final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+                        final List<PackageInfo> myInstalledPackagesList = packageManager.getInstalledPackages(0);
+                        List<PackageInfo> myInstalledPackagesSystemOnly = packageManager.getInstalledPackages(PackageManager.MATCH_SYSTEM_ONLY);
+
+
+
+                       /*Excluding system applications*/
+                        final List<PackageInfo> myInstalledPackagesListNonSystemApps = new ArrayList<>();
+                        for(PackageInfo myInstalledPackagesListElement : myInstalledPackagesList){
+                            if( !isSystemPackage(myInstalledPackagesListElement)){
+                                myInstalledPackagesListNonSystemApps.add(myInstalledPackagesListElement);
+                            }
+                        }
+
+                        /*removing system applications*/
+
+                        Log.d(Tag, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                        for(PackageInfo e : myInstalledPackagesListNonSystemApps)
+                            Log.d(Tag,"non system application name: "+e+isSystemPackage(e)+" "+isSystemPackageSecondApproach(e));
+
+                        Collections.sort(myInstalledPackagesListNonSystemApps, new Comparator<PackageInfo>() {
+                            @Override
+                            public int compare(PackageInfo o1, PackageInfo o2) {
+                                String app1Label = o1.applicationInfo.loadLabel(packageManager).toString();
+                                String app2Label = o2.applicationInfo.loadLabel(packageManager).toString();
+                                Log.d(Tag,"Comparing: "+app1Label+" and "+app2Label+"result: "+ app1Label.compareToIgnoreCase(app2Label) );
+                                return app1Label.compareToIgnoreCase(app2Label);
+                            }
+                        });
+
+                        Log.d(Tag, "List from the experimental code");
+                        for(PackageInfo myInstalledPackagesListElement : myInstalledPackagesListNonSystemApps){
+                            String applicationLabel =  myInstalledPackagesListElement.applicationInfo.loadLabel(packageManager).toString();
+                            myApplicationLabelList.add(applicationLabel);
+                        }
+                 //       final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
 
                         /*Excluding system application from the list*/
-                        int size = myInstalledApplicationInfoList.size();
-                        for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
+                      /*  for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
                             ApplicationInfo application = myInstalledApplicationInfoList.get(applicationIterator);
                             if (isSystemPackage(application) == Boolean.TRUE) {
                                 myInstalledApplicationInfoList.remove(application);
                                 size -= 1;
                             }
-                        }
+                        }*/
 
                         /*To sort the list of the applications*/
-                        Collections.sort(myInstalledApplicationInfoList, new PackageItemInfo.DisplayNameComparator(packageManager));
 
+                        // Collections.sort(myInstalledApplicationInfoList, new PackageItemInfo.DisplayNameComparator(packageManager));
 
-                        for (ApplicationInfo application : myInstalledApplicationInfoList) {
-                            String packageName = application.packageName;
-                            try {
-                                ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
-                                String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
-                                myApplicationLabelList.add(applicationLabel);
-                                //    Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
-                            } catch (PackageManager.NameNotFoundException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
 
                         builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String packageName = myInstalledApplicationInfoList.get(which).packageName; /*retrieved package name using label*/
+                                String packageName = myInstalledPackagesListNonSystemApps.get(which).packageName; /*retrieved package name using label*/
                                 String applicationLabel = myApplicationLabelList.get(which);
                                 Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
                                 packageManager.getLaunchIntentForPackage(packageName);
@@ -383,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
                     /*Excluding system application from the list*/
-                    int size = myInstalledApplicationInfoList.size();
+                    /*int size = myInstalledApplicationInfoList.size();
                     for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
                         ApplicationInfo application = myInstalledApplicationInfoList.get(applicationIterator);
                         if (isSystemPackage(application) == Boolean.TRUE) {
@@ -391,7 +415,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             size -= 1;
                         }
                     }
-
+*/
                     /*sorting the myInstalledApplicationInfoList*/
                     /*final PackageItemInfo.DisplayNameComparator comparator = new PackageItemInfo.DisplayNameComparator(packageManager);
                     Collections.sort()
@@ -546,8 +570,15 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     /*------------------------ END OF SETTINGS ACCESSION -----------------------------------*/
 
     /*------------------------ FOR EXCLUDING ANY SYSTEM APPLLICATIONS ---------------------*/
-    private boolean isSystemPackage(ApplicationInfo pkgInfo) {
-        return ((pkgInfo.flags & pkgInfo.FLAG_SYSTEM) != 0);
+    private boolean isSystemPackage(PackageInfo packageInfo) {
+         ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+        return ((applicationInfo.flags & applicationInfo.FLAG_SYSTEM) != 0);
+    }
+    private boolean isSystemPackageSecondApproach(PackageInfo packageInfo){
+        ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+        if((applicationInfo.flags & (ApplicationInfo.FLAG_UPDATED_SYSTEM_APP | ApplicationInfo.FLAG_SYSTEM)) > 0){
+            return true;    }
+    return false;
     }
     /*-------------------------------------------------------------------------------------*/
 
