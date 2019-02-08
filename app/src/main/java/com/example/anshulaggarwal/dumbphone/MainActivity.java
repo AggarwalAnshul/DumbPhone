@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageItemInfo;
@@ -302,12 +303,23 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         final ArrayList<String> myApplicationLabelList = new ArrayList<>();
 
                         final PackageManager packageManager = getPackageManager();
-                        final List<PackageInfo> myInstalledPackagesList = packageManager.getInstalledPackages(0);
+                        Intent intent = new Intent(Intent.ACTION_MAIN, null);
+                        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        final List<ResolveInfo> myInstalledPackagesList = packageManager.queryIntentActivities(intent, 0);
+
+                        Collections.sort(myInstalledPackagesList, new ResolveInfo.DisplayNameComparator(packageManager));
+                        for(ResolveInfo el : myInstalledPackagesList){
+                            ActivityInfo activityInfo = el.activityInfo;
+                            ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
+                            Log.d(Tag, "Component Name: "+activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                        }
+
+                      /*  final List<PackageInfo> myInstalledPackagesList = packageManager.getInstalledPackages(0);
                         List<PackageInfo> myInstalledPackagesSystemOnly = packageManager.getInstalledPackages(PackageManager.MATCH_SYSTEM_ONLY);
 
 
 
-                       /*Excluding system applications*/
+                       *//*Excluding system applications*//*
                         final List<PackageInfo> myInstalledPackagesListNonSystemApps = new ArrayList<>();
                         for(PackageInfo myInstalledPackagesListElement : myInstalledPackagesList){
                             if( !isSystemPackage(myInstalledPackagesListElement)){
@@ -315,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             }
                         }
 
-                        /*removing system applications*/
+                        *//*removing system applications*//*
 
                         Log.d(Tag, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
                         for(PackageInfo e : myInstalledPackagesListNonSystemApps)
@@ -329,11 +341,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                 Log.d(Tag,"Comparing: "+app1Label+" and "+app2Label+"result: "+ app1Label.compareToIgnoreCase(app2Label) );
                                 return app1Label.compareToIgnoreCase(app2Label);
                             }
-                        });
+                        });*/
 
                         Log.d(Tag, "List from the experimental code");
-                        for(PackageInfo myInstalledPackagesListElement : myInstalledPackagesListNonSystemApps){
-                            String applicationLabel =  myInstalledPackagesListElement.applicationInfo.loadLabel(packageManager).toString();
+                        for(ResolveInfo myInstalledPackagesListElement : myInstalledPackagesList){
+                            String applicationLabel =  myInstalledPackagesListElement.activityInfo.applicationInfo.loadLabel(packageManager).toString();
                             myApplicationLabelList.add(applicationLabel);
                         }
                  //       final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
@@ -355,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String packageName = myInstalledPackagesListNonSystemApps.get(which).packageName; /*retrieved package name using label*/
+                                String packageName = myInstalledPackagesList.get(which).activityInfo.packageName; /*retrieved package name using label*/
                                 String applicationLabel = myApplicationLabelList.get(which);
                                 Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
                                 packageManager.getLaunchIntentForPackage(packageName);
@@ -403,8 +415,20 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
                     final PackageManager packageManager = getPackageManager();
-                    final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+                    Intent intent = new Intent(Intent.ACTION_MAIN, null);
+                    intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    final List<ResolveInfo> myInstalledApplicationInfoList = packageManager.queryIntentActivities(intent, 0);
 
+                    Collections.sort(myInstalledApplicationInfoList, new ResolveInfo.DisplayNameComparator(packageManager));
+                    for(ResolveInfo el : myInstalledApplicationInfoList){
+                        ActivityInfo activityInfo = el.activityInfo;
+                        ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
+                        Log.d(Tag, "Component Name: "+activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                    }
+
+
+            /*        final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+*/
 
                     /*Excluding system application from the list*/
                     /*int size = myInstalledApplicationInfoList.size();
@@ -421,8 +445,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Collections.sort()
 */
                     /*--------------------------------------------------------------------------*/
-                    Collections.sort(myInstalledApplicationInfoList, new ApplicationInfo.DisplayNameComparator(packageManager));
-                    /*------------------------------------------------------------------------- */
+                 /*   Collections.sort(myInstalledApplicationInfoList, new ApplicationInfo.DisplayNameComparator(packageManager));
+                 */   /*------------------------------------------------------------------------- */
 
 
                     /*---------------------OBSOLETE APPROACH----------------------------*/
@@ -456,24 +480,30 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         ApplicationLabel.add(returnApplicationLabel(element));
                     }
 */
-
-                    for (ApplicationInfo application : myInstalledApplicationInfoList) {
-                        String packageName = application.packageName;
+                   for(ResolveInfo application : myInstalledApplicationInfoList){
+                       String applicationLabel = application.activityInfo.applicationInfo.loadLabel(packageManager).toString();
+                       myApplicationLabelList.add(applicationLabel);
+                       Log.d(Tag, "Label: "+applicationLabel);
+                   }
+/*
+                    for (ResolveInfo application : myInstalledApplicationInfoList) {
+                        String packageName = application.activityInfo.packageName;
                         try {
                             ApplicationInfo thisApplicationInfo = packageManager.getApplicationInfo(packageName, packageManager.GET_META_DATA);
                             String applicationLabel = (String) packageManager.getApplicationLabel(thisApplicationInfo);
+                            String applicationLable = packageName
                             myApplicationLabelList.add(applicationLabel);
                             Log.d(Tag, "PACKAGE: " + packageName + " LABEL: " + applicationLabel);
                         } catch (PackageManager.NameNotFoundException e) {
                             e.printStackTrace();
                         }
 
-                    }
+                    }*/
 
                     builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            String packageName = myInstalledApplicationInfoList.get(which).packageName; /*retrieved package name using label*/
+                            String packageName = myInstalledApplicationInfoList.get(which).activityInfo.packageName; /*retrieved package name using label*/
                             String applicationLabel = myApplicationLabelList.get(which);
                             Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
                             packageManager.getLaunchIntentForPackage(packageName);
