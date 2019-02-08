@@ -33,6 +33,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -42,6 +43,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,6 +59,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import javax.security.auth.callback.PasswordCallback;
+
+import static com.example.anshulaggarwal.dumbphone.passcode.LOCKMODE_DATA_TABLE_COLUMN_1;
+import static com.example.anshulaggarwal.dumbphone.passcode.LOCKMODE_DATA_TABLE_COLUMN_2;
+import static com.example.anshulaggarwal.dumbphone.passcode.LOCKMODE_DATA_TABLE_NAME;
+import static com.example.anshulaggarwal.dumbphone.passcode.PASSCODE_DATA_TABLE_COLUMN_1;
+import static com.example.anshulaggarwal.dumbphone.passcode.PASSCODE_DATA_TABLE_COLUMN_2;
+import static com.example.anshulaggarwal.dumbphone.passcode.PASSCODE_DATA_TABLE_NAME;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     TextView tv_currentDate, tv_currentTimeMinutes, tv_currentTimeHour, tv_currentTimeSeparator;
@@ -80,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     public static final int BUTTON_DATA_TABLE_PACKAGE_INDEX = 2;
     public static final String SETTINGS_DATA_TABLE_COLUMN1 = "applicationCount";
     public static int applicationCount = 3; /*The Default value */
+    public static boolean lockMode = Boolean.FALSE;
     /*---------------- END OF DATABASE -----------------------------*/
 
 
@@ -138,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         /*----------------------------------------------------------------------------------------*/
 
         SharedPreferences buttonSharedPreference = PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences lockModeSharedPreference = PreferenceManager.getDefaultSharedPreferences(this);
         if (buttonSharedPreference.getString("colorMode", "").equals(DARK_THEME)) {
             btn_exit.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
             btn_dialler.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
@@ -167,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         } else {
             constraintLayout.setBackgroundColor(Color.WHITE);
         }
+
         /*-------------------------End of shared preference retrieval ------------------------------*/
 
         /*------------------------  Date & Time Utility --------------------------------------*/
@@ -233,6 +245,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         /*-------------------- For Application Launching Buttons ----------------------------*/
         createTable();
+        createTableLockMode();
+        createTablePasscode();
         LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linearLayout);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -252,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 String dbRetrievedApplicationLabel = cursor.getString(1);
                 newButton.setText(dbRetrievedApplicationLabel);
             } else {
-                newButton.setText("Set Application " + (button_count+1) );
+                newButton.setText("Set Application " + (button_count + 1));
             }
             /*---------------------------------------------------------------------*/
 
@@ -297,22 +311,39 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         startActivity(new Intent(getPackageManager().getLaunchIntentForPackage(local_packageName)));
                     } else {
 
-                        /*the application corresponding to this newButton has  not been selected yet*/
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setTitle("Choose an application");
-                        final ArrayList<String> myApplicationLabelList = new ArrayList<>();
+                        /*Adding a security feature to lock/unlock applications*/
 
-                        final PackageManager packageManager = getPackageManager();
-                        Intent intent = new Intent(Intent.ACTION_MAIN, null);
-                        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-                        final List<ResolveInfo> myInstalledPackagesList = packageManager.queryIntentActivities(intent, 0);
 
-                        Collections.sort(myInstalledPackagesList, new ResolveInfo.DisplayNameComparator(packageManager));
-                        for(ResolveInfo el : myInstalledPackagesList){
-                            ActivityInfo activityInfo = el.activityInfo;
-                            ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
-                            Log.d(Tag, "Component Name: "+activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                        Cursor cursorLockMode = sqLiteDatabase.rawQuery("select " + LOCKMODE_DATA_TABLE_COLUMN_2
+                                + " from " + LOCKMODE_DATA_TABLE_NAME + " where " + LOCKMODE_DATA_TABLE_COLUMN_1 +
+                                " = 1;", null);
+                        Log.d(Tag, "Printing the retrieved values" + cursorLockMode.getCount());
+                        cursorLockMode.moveToFirst();
+                        while (!cursorLockMode.isAfterLast()) {
+                            Log.d(Tag, "status: " + cursorLockMode.getString(0));
+                            cursorLockMode.moveToNext();
                         }
+
+                        cursorLockMode.moveToFirst();
+                        if (cursorLockMode.getCount() > 0 && cursorLockMode.getString(0).compareToIgnoreCase("unlocked") == 0) {
+                            {
+                                Log.d(Tag, "In here...:");
+                                /*the application corresponding to this newButton has  not been selected yet*/
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                builder.setTitle("Choose an application");
+                                final ArrayList<String> myApplicationLabelList = new ArrayList<>();
+
+                                final PackageManager packageManager = getPackageManager();
+                                Intent intent = new Intent(Intent.ACTION_MAIN, null);
+                                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                                final List<ResolveInfo> myInstalledPackagesList = packageManager.queryIntentActivities(intent, 0);
+
+                                Collections.sort(myInstalledPackagesList, new ResolveInfo.DisplayNameComparator(packageManager));
+                              /*  for (ResolveInfo el : myInstalledPackagesList) {
+                                    ActivityInfo activityInfo = el.activityInfo;
+                                    ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
+                                    Log.d(Tag, "Component Name: " + activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                                }*/
 
                       /*  final List<PackageInfo> myInstalledPackagesList = packageManager.getInstalledPackages(0);
                         List<PackageInfo> myInstalledPackagesSystemOnly = packageManager.getInstalledPackages(PackageManager.MATCH_SYSTEM_ONLY);
@@ -343,14 +374,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             }
                         });*/
 
-                        Log.d(Tag, "List from the experimental code");
-                        for(ResolveInfo myInstalledPackagesListElement : myInstalledPackagesList){
-                            String applicationLabel =  myInstalledPackagesListElement.activityInfo.applicationInfo.loadLabel(packageManager).toString();
-                            myApplicationLabelList.add(applicationLabel);
-                        }
-                 //       final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+                                Log.d(Tag, "List from the experimental code");
+                                for (ResolveInfo myInstalledPackagesListElement : myInstalledPackagesList) {
+                                    String applicationLabel = myInstalledPackagesListElement.activityInfo.applicationInfo.loadLabel(packageManager).toString();
+                                    myApplicationLabelList.add(applicationLabel);
+                                }
+                                //       final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
 
-                        /*Excluding system application from the list*/
+                                /*Excluding system application from the list*/
                       /*  for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
                             ApplicationInfo application = myInstalledApplicationInfoList.get(applicationIterator);
                             if (isSystemPackage(application) == Boolean.TRUE) {
@@ -359,44 +390,49 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             }
                         }*/
 
-                        /*To sort the list of the applications*/
+                                /*To sort the list of the applications*/
 
-                        // Collections.sort(myInstalledApplicationInfoList, new PackageItemInfo.DisplayNameComparator(packageManager));
+                                // Collections.sort(myInstalledApplicationInfoList, new PackageItemInfo.DisplayNameComparator(packageManager));
 
 
-                        builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String packageName = myInstalledPackagesList.get(which).activityInfo.packageName; /*retrieved package name using label*/
-                                String applicationLabel = myApplicationLabelList.get(which);
-                                Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
-                                packageManager.getLaunchIntentForPackage(packageName);
-                                buttonPackageName = packageName;
-                                buttonLabel = applicationLabel;
+                                builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String packageName = myInstalledPackagesList.get(which).activityInfo.packageName; /*retrieved package name using label*/
+                                        String applicationLabel = myApplicationLabelList.get(which);
+                                        Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
+                                        packageManager.getLaunchIntentForPackage(packageName);
+                                        buttonPackageName = packageName;
+                                        buttonLabel = applicationLabel;
+                                    }
+                                });
+                                builder.setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+
+                                        /*Storing the selected application data into the database*/
+                                        String query = "insert into " + BUTTON_DATA_TABLE_Name + " values(" + finalButton_count + ", '" + buttonLabel + "', '" + buttonPackageName + "');";
+                                        sqLiteDatabase.execSQL(query);
+                                        Log.d(Tag, "Query executed for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
+                                        Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
+                                        newButton.setText(buttonLabel);
+                                    }
+                                });
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                });
+
+                                AlertDialog alertDialog = builder.create();
+                                alertDialog.show();
                             }
-                        });
-                        builder.setPositiveButton("Select", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-
-                                /*Storing the selected application data into the database*/
-                                String query = "insert into " + BUTTON_DATA_TABLE_Name + " values(" + finalButton_count + ", '" + buttonLabel + "', '" + buttonPackageName + "');";
-                                sqLiteDatabase.execSQL(query);
-                                Log.d(Tag, "Query executed for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
-                                Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
-                                newButton.setText(buttonLabel);
-                            }
-                        });
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        });
-
-                        AlertDialog alertDialog = builder.create();
-                        alertDialog.show();
+                        } else {
+                            Log.d(Tag, "APplications are locked!");
+                            Toast.makeText(MainActivity.this, "Please Unlock the applications first!", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             });
@@ -406,31 +442,46 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
                     vibrate();
-
-                    /*the application corresponding to this newButton has  not been selected yet*/
-                    sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
-                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setTitle("Choose another application");
-                    final ArrayList<String> myApplicationLabelList = new ArrayList<>();
-
-
-                    final PackageManager packageManager = getPackageManager();
-                    Intent intent = new Intent(Intent.ACTION_MAIN, null);
-                    intent.addCategory(Intent.CATEGORY_LAUNCHER);
-                    final List<ResolveInfo> myInstalledApplicationInfoList = packageManager.queryIntentActivities(intent, 0);
-
-                    Collections.sort(myInstalledApplicationInfoList, new ResolveInfo.DisplayNameComparator(packageManager));
-                    for(ResolveInfo el : myInstalledApplicationInfoList){
-                        ActivityInfo activityInfo = el.activityInfo;
-                        ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
-                        Log.d(Tag, "Component Name: "+activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                    Cursor cursorLockMode = sqLiteDatabase.rawQuery("select " + LOCKMODE_DATA_TABLE_COLUMN_2
+                            + " from " + LOCKMODE_DATA_TABLE_NAME + " where " + LOCKMODE_DATA_TABLE_COLUMN_1 +
+                            " = 1;", null);
+                    Log.d(Tag, "Printing the retrieved values" + cursorLockMode.getCount());
+                    cursorLockMode.moveToFirst();
+                    while (!cursorLockMode.isAfterLast()) {
+                        Log.d(Tag, "status: " + cursorLockMode.getString(0));
+                        cursorLockMode.moveToNext();
                     }
 
+                    cursorLockMode.moveToFirst();
+                    if (cursorLockMode.getCount() > 0 && cursorLockMode.getString(0).compareToIgnoreCase("unlocked") == 0) {
+                        {
+                            Log.d(Tag, "In here...:");
 
-            /*        final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
-*/
 
-                    /*Excluding system application from the list*/
+                            /*the application corresponding to this newButton has  not been selected yet*/
+                            sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("Choose another application");
+                            final ArrayList<String> myApplicationLabelList = new ArrayList<>();
+
+
+                            final PackageManager packageManager = getPackageManager();
+                            Intent intent = new Intent(Intent.ACTION_MAIN, null);
+                            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            final List<ResolveInfo> myInstalledApplicationInfoList = packageManager.queryIntentActivities(intent, 0);
+
+                            Collections.sort(myInstalledApplicationInfoList, new ResolveInfo.DisplayNameComparator(packageManager));
+                            for (ResolveInfo el : myInstalledApplicationInfoList) {
+                                ActivityInfo activityInfo = el.activityInfo;
+                                ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
+                                Log.d(Tag, "Component Name: " + activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                            }
+
+
+                            /*        final List<ApplicationInfo> myInstalledApplicationInfoList = packageManager.getInstalledApplications(packageManager.GET_META_DATA);
+                             */
+
+                            /*Excluding system application from the list*/
                     /*int size = myInstalledApplicationInfoList.size();
                     for (int applicationIterator = 0; applicationIterator < size; applicationIterator += 1) {
                         ApplicationInfo application = myInstalledApplicationInfoList.get(applicationIterator);
@@ -440,19 +491,19 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                         }
                     }
 */
-                    /*sorting the myInstalledApplicationInfoList*/
+                            /*sorting the myInstalledApplicationInfoList*/
                     /*final PackageItemInfo.DisplayNameComparator comparator = new PackageItemInfo.DisplayNameComparator(packageManager);
                     Collections.sort()
 */
-                    /*--------------------------------------------------------------------------*/
-                 /*   Collections.sort(myInstalledApplicationInfoList, new ApplicationInfo.DisplayNameComparator(packageManager));
-                 */   /*------------------------------------------------------------------------- */
+                            /*--------------------------------------------------------------------------*/
+                            /*   Collections.sort(myInstalledApplicationInfoList, new ApplicationInfo.DisplayNameComparator(packageManager));
+                             */   /*------------------------------------------------------------------------- */
 
 
-                    /*---------------------OBSOLETE APPROACH----------------------------*/
-                    /*This approach led to huge time complexity and was causing a significant amount
-                    * of time delay noticiable to 8.0+ seconds hence moving towards a more streamlined
-                    * version of sorting algorithm*/
+                            /*---------------------OBSOLETE APPROACH----------------------------*/
+                            /*This approach led to huge time complexity and was causing a significant amount
+                             * of time delay noticiable to 8.0+ seconds hence moving towards a more streamlined
+                             * version of sorting algorithm*/
                    /* int tempSize = myInstalledApplicationInfoList.size();
                     for (int i = 0; i < tempSize - 1; i++) {
                         for (int j = 0; j < tempSize - 1 - i; j++) {
@@ -465,26 +516,26 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             }
                         }
                     }*/
-                   /*--------------------------------------------------------*/
+                            /*--------------------------------------------------------*/
 
-/*DISABLED TO CHECK WHETHER REDUCITON IN RUNNIG TIME TO FETCH APPLICATIONS ? */
+                            /*DISABLED TO CHECK WHETHER REDUCITON IN RUNNIG TIME TO FETCH APPLICATIONS ? */
                    /* Log.d(Tag, "List Sorted:");
                     for (ApplicationInfo element : myInstalledApplicationInfoList) {
                         Log.d(Tag, "\telement");
                     }
 */
 
-                    /*Adding the Application's label from the returned list of installed applications*/
+                            /*Adding the Application's label from the returned list of installed applications*/
                    /* List<String> ApplicationLabel = new ArrayList<>();
                     for(ApplicationInfo element : myInstalledApplicationInfoList){
                         ApplicationLabel.add(returnApplicationLabel(element));
                     }
 */
-                   for(ResolveInfo application : myInstalledApplicationInfoList){
-                       String applicationLabel = application.activityInfo.applicationInfo.loadLabel(packageManager).toString();
-                       myApplicationLabelList.add(applicationLabel);
-                       Log.d(Tag, "Label: "+applicationLabel);
-                   }
+                            for (ResolveInfo application : myInstalledApplicationInfoList) {
+                                String applicationLabel = application.activityInfo.applicationInfo.loadLabel(packageManager).toString();
+                                myApplicationLabelList.add(applicationLabel);
+                                Log.d(Tag, "Label: " + applicationLabel);
+                            }
 /*
                     for (ResolveInfo application : myInstalledApplicationInfoList) {
                         String packageName = application.activityInfo.packageName;
@@ -500,43 +551,48 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
                     }*/
 
-                    builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            String packageName = myInstalledApplicationInfoList.get(which).activityInfo.packageName; /*retrieved package name using label*/
-                            String applicationLabel = myApplicationLabelList.get(which);
-                            Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
-                            packageManager.getLaunchIntentForPackage(packageName);
-                            buttonPackageName = packageName;
-                            buttonLabel = applicationLabel;
+                            builder.setSingleChoiceItems(myApplicationLabelList.toArray(new String[myApplicationLabelList.size()]), 1, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String packageName = myInstalledApplicationInfoList.get(which).activityInfo.packageName; /*retrieved package name using label*/
+                                    String applicationLabel = myApplicationLabelList.get(which);
+                                    Log.d(Tag, "user selected application :" + which + " " + myApplicationLabelList.get(which));
+                                    packageManager.getLaunchIntentForPackage(packageName);
+                                    buttonPackageName = packageName;
+                                    buttonLabel = applicationLabel;
+                                }
+                            });
+                            builder.setPositiveButton("Select", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+
+                                    /*Storing the selected application data into the database*/
+                                    String query = "update " + BUTTON_DATA_TABLE_Name + " set " + BUTTON_DATA_TABLE_COLUMN_2
+                                            + " = " + " '" + buttonLabel + "' " + ", " + BUTTON_DATA_TABLE_COLUMN_3
+                                            + " = " + " '" + buttonPackageName + "' " + " where " + BUTTON_DATA_TABLE_COLUMN_1
+                                            + " = " + finalButton_count + ";";
+                                    sqLiteDatabase.execSQL(query);
+                                    Log.d(Tag, "Query: " + query);
+                                    Log.d(Tag, "Query updated for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
+                                    Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
+                                    newButton.setText(buttonLabel);
+                                }
+                            });
+                            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            });
+
+                            AlertDialog alertDialog = builder.create();
+                            alertDialog.show();
+
                         }
-                    });
-                    builder.setPositiveButton("Select", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-
-                            /*Storing the selected application data into the database*/
-                            String query = "update " + BUTTON_DATA_TABLE_Name + " set " + BUTTON_DATA_TABLE_COLUMN_2
-                                    + " = " + " '" + buttonLabel + "' " + ", " + BUTTON_DATA_TABLE_COLUMN_3
-                                    + " = " + " '" + buttonPackageName + "' " + " where " + BUTTON_DATA_TABLE_COLUMN_1
-                                    + " = " + finalButton_count + ";";
-                            sqLiteDatabase.execSQL(query);
-                            Log.d(Tag, "Query: " + query);
-                            Log.d(Tag, "Query updated for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
-                            Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
-                            newButton.setText(buttonLabel);
-                        }
-                    });
-                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                        }
-                    });
-
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Please Unlock the Applications first", Toast.LENGTH_SHORT).show();
+                    }
                     return true;
                 }
             });
@@ -601,14 +657,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     /*------------------------ FOR EXCLUDING ANY SYSTEM APPLLICATIONS ---------------------*/
     private boolean isSystemPackage(PackageInfo packageInfo) {
-         ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+        ApplicationInfo applicationInfo = packageInfo.applicationInfo;
         return ((applicationInfo.flags & applicationInfo.FLAG_SYSTEM) != 0);
     }
-    private boolean isSystemPackageSecondApproach(PackageInfo packageInfo){
+
+    private boolean isSystemPackageSecondApproach(PackageInfo packageInfo) {
         ApplicationInfo applicationInfo = packageInfo.applicationInfo;
-        if((applicationInfo.flags & (ApplicationInfo.FLAG_UPDATED_SYSTEM_APP | ApplicationInfo.FLAG_SYSTEM)) > 0){
-            return true;    }
-    return false;
+        if ((applicationInfo.flags & (ApplicationInfo.FLAG_UPDATED_SYSTEM_APP | ApplicationInfo.FLAG_SYSTEM)) > 0) {
+            return true;
+        }
+        return false;
     }
     /*-------------------------------------------------------------------------------------*/
 
@@ -733,10 +791,54 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (key.equals("application_count")) {
             changeApplicationCount(sharedPreferences.getString("application_count", "3"));
         }
+        if (key.equals("lock_mode")) {
+            changeLockMode(sharedPreferences.getBoolean("lock_mode", false));
+        }
+    }
+
+    private void changeLockMode(final Boolean lockModes) {
+        Toast.makeText(this, "lockModes" + lockModes, Toast.LENGTH_LONG).show();
+        Log.d(Tag, "lockModes: " + lockModes);
+        if (lockModes == Boolean.FALSE) {
+            /*creating the password gateway here*/
+            startActivity(new Intent(this, passcode.class));
+        } else {
+            Toast.makeText(this, "Locked", Toast.LENGTH_SHORT).show();
+            sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+            sqLiteDatabase.execSQL("update " + LOCKMODE_DATA_TABLE_NAME + " set " + LOCKMODE_DATA_TABLE_COLUMN_2
+                    + " = 'locked' where " + LOCKMODE_DATA_TABLE_COLUMN_1 + " = 1;");
+            sqLiteDatabase.close();
+        }
     }
 
     private void changeApplicationCount(String application_count) {
         applicationCount = Integer.parseInt(application_count);
         //Toast.makeText(this, "Changed application count registered to: " + application_count, Toast.LENGTH_SHORT).show();
+    }
+
+    public void createTableLockMode() {
+        sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+        sqLiteDatabase.execSQL("create table if not exists " + LOCKMODE_DATA_TABLE_NAME +
+                "(" + LOCKMODE_DATA_TABLE_COLUMN_1 + " integer primary key unique," +
+                LOCKMODE_DATA_TABLE_COLUMN_2 + " varchar);");
+        Log.d(Tag, "LockMode Table created");
+        try {
+            sqLiteDatabase.execSQL("insert into " + LOCKMODE_DATA_TABLE_NAME + " values(1, 'unlocked');");
+        } catch (Exception exception) {
+        }
+        sqLiteDatabase.close();
+    }
+
+    public final void createTablePasscode() {
+        sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
+        sqLiteDatabase.execSQL("create table if not exists " + PASSCODE_DATA_TABLE_NAME +
+                "(" + PASSCODE_DATA_TABLE_COLUMN_1 + " integer primary key unique," +
+                PASSCODE_DATA_TABLE_COLUMN_2 + " varchar);");
+        Log.d(Tag, "Passcode Table created");
+        try {
+            sqLiteDatabase.execSQL("insert into " + PASSCODE_DATA_TABLE_NAME + " values(1, '1234');");
+        } catch (Exception exception) {
+        }
+        sqLiteDatabase.close();
     }
 }

@@ -104,17 +104,17 @@
         android:id="@+id/tv_currentTimeHour"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingRight="2dp"
         android:text="Time"
         android:textAlignment="textEnd"
         android:textColor="@color/textColor"
         android:textSize="50sp"
         android:textStyle="bold"
-        android:paddingRight="2dp"
-        app:layout_constraintTop_toTopOf="@id/topGuideLine"
         app:layout_constraintBottom_toBottomOf="@id/bottomGuideLine"
         app:layout_constraintEnd_toStartOf="@id/tv_currentTimeSeparator"
+        app:layout_constraintTop_toTopOf="@id/topGuideLine"
 
-        />
+        tools:fontFamily="cursive" />
 
     <TextView
         android:layout_width="wrap_content"
