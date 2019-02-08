@@ -3,6 +3,7 @@ package com.example.anshulaggarwal.dumbphone;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,11 +24,13 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.KeyEventDispatcher;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -268,6 +271,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 newButton.setText(dbRetrievedApplicationLabel);
             } else {
                 newButton.setText("Set Application " + (button_count + 1));
+                Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.prata_regular);
+                newButton.setTypeface(typeface);
             }
             /*---------------------------------------------------------------------*/
 
@@ -418,6 +423,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                         Log.d(Tag, "Query executed for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
                                         Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
                                         newButton.setText(buttonLabel);
+                                        Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.prata_regular);
+                                        newButton.setTypeface(typeface);
                                     }
                                 });
                                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -799,7 +806,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     private void changeLockMode(final Boolean lockModes) {
-        Toast.makeText(this, "lockModes" + lockModes, Toast.LENGTH_LONG).show();
+      //  Toast.makeText(this, "lockModes" + lockModes, Toast.LENGTH_LONG).show();
         Log.d(Tag, "lockModes: " + lockModes);
         if (lockModes == Boolean.FALSE) {
             /*creating the password gateway here*/
@@ -843,4 +850,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
         sqLiteDatabase.close();
     }
+
+
 }
