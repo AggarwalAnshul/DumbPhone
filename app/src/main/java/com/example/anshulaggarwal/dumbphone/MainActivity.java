@@ -154,11 +154,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             btn_dialler.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
         }
         String choice = buttonSharedPreference.getString("show_exit_button", "");
-        if (choice.equals(getString(R.string.hide))) {
-            btn_exit.setVisibility(View.INVISIBLE);
-        } else if (choice.equals(getString(R.string.gone))) {
+        if (choice.equals(getString(R.string.gone))) {
             btn_exit.setVisibility(View.GONE);
             btn_exit.setEnabled(false);
+        } else if (choice.equals(getString(R.string.show))) {
+            btn_exit.setVisibility(View.VISIBLE);
+
         }
         /*-------------------- END OF EXIT BUTTON ------------------------------------------------*/
 
@@ -442,6 +443,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
 
                     vibrate();
+                    sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
                     Cursor cursorLockMode = sqLiteDatabase.rawQuery("select " + LOCKMODE_DATA_TABLE_COLUMN_2
                             + " from " + LOCKMODE_DATA_TABLE_NAME + " where " + LOCKMODE_DATA_TABLE_COLUMN_1 +
                             " = 1;", null);

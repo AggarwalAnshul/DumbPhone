@@ -36,8 +36,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.anshulaggarwal.dumbphone.MainActivity" />
         </activity>
-        <activity android:name=".passcode" />
-        <activity android:name=".ResetPasscode"></activity>
+        <activity android:name=".passcode">
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.example.anshulaggarwal.dumbphone.MainActivity" />
+        </activity>
+        <activity android:name=".ResetPasscode">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.anshulaggarwal.dumbphone.ResetPasscode" />
+        </activity>
     </application>
 
 </manifest>
