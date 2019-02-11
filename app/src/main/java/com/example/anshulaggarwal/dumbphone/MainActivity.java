@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         Boolean show_dialler = diallerPerference.getBoolean("dialler_setting", Boolean.TRUE);
         //Log.d(Tag, "dialler Preference changed to: "+diallerPerference);
         if (isMyApplicationDefault() == Boolean.FALSE ||
-                   show_dialler.equals(Boolean.FALSE) ) {
+                show_dialler.equals(Boolean.FALSE)) {
             btn_dialler.setEnabled(false);
             btn_dialler.setVisibility(View.INVISIBLE);
             Log.d(Tag, "The Application is not Default");
@@ -173,7 +173,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             constraintLayout.setBackgroundColor(Color.WHITE);
         }
 
-        /*-------------------------End of shared preference retrieval ------------------------------*/
+        /*--------------- LOCK PHONE WHEN DOUBLE TAPPED -------------------------------------*/
+        constraintLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        /*-----------------------------------------------------------------------------------*/
+
+        /*-------------------------End of shared preference retrieval -----------------------*/
 
         /*------------------------  Date & Time Utility --------------------------------------*/
         Button btn_settings = (Button) findViewById(R.id.btn_settings);
@@ -192,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }, 10);
 
 
-        if(stylized_font.equals(Boolean.TRUE)){
+        if (stylized_font.equals(Boolean.TRUE)) {
             Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.open_sans);
             tv_currentTimeHour.setTypeface(typeface);
             tv_currentTimeMinutes.setTypeface(typeface);
@@ -231,6 +240,34 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
         settingsSharedPreferences();
         /*-------------------- End of Date & Time Utility -----------------------------------*/
+
+
+        /*--------------------- Open Clock, Calendar when clicked on Time, Date--------------*/
+        tv_currentTimeMinutes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openClock();
+            }
+        });
+        tv_currentTimeSeparator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openClock();
+            }
+        });
+        tv_currentTimeHour.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openClock();
+            }
+        });
+        tv_currentDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openCalendar();
+            }
+        });
+        /*-----------------------------------------------------------------------------------*/
 
 
         /*-------------------- NAVIGATION TO SETTINGS INTERFACE ----------------------------*/
@@ -492,7 +529,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             for (ResolveInfo el : myInstalledApplicationInfoList) {
                                 ActivityInfo activityInfo = el.activityInfo;
                                 ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName, activityInfo.name);
-                                Log.d(Tag, "Component Name: " + activityInfo.applicationInfo.loadLabel(packageManager).toString());
+                                //
+                                //
+                                // Log.d(Tag, "Component Name: " + activityInfo.applicationInfo.loadLabel(packageManager).toString());
                             }
 
 
@@ -552,7 +591,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             for (ResolveInfo application : myInstalledApplicationInfoList) {
                                 String applicationLabel = application.activityInfo.applicationInfo.loadLabel(packageManager).toString();
                                 myApplicationLabelList.add(applicationLabel);
-                                Log.d(Tag, "Label: " + applicationLabel);
+                                // Log.d(Tag, "Label: " + applicationLabel);
                             }
 /*
                     for (ResolveInfo application : myInstalledApplicationInfoList) {
@@ -623,6 +662,32 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     }
 
+    private final void openCalendar() {
+
+        final PackageManager packageManager = getPackageManager();
+        Intent intent = new Intent(Intent.ACTION_MAIN, null);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        final List<ResolveInfo> myInstalledPackagesList = packageManager.queryIntentActivities(intent, 0);
+        for (ResolveInfo el : myInstalledPackagesList) {
+            if (el.activityInfo.applicationInfo.loadLabel(packageManager).toString().equalsIgnoreCase("calendar")) {
+                startActivity(packageManager.getLaunchIntentForPackage(el.activityInfo.packageName));
+            }
+        }
+    }
+
+    private final void openClock() {
+        List<PackageInfo> packList = getPackageManager().getInstalledPackages(0);
+        int packListSize = packList.size();
+        for (int i = 0; i < packListSize; i++) {
+            PackageInfo packInfo = packList.get(i);
+            String appName = packInfo.applicationInfo.loadLabel(getPackageManager()).toString();
+            if (appName.toLowerCase().contains("clock")) {
+                i = packListSize + 5;
+                startActivity(getPackageManager().getLaunchIntentForPackage(packInfo.packageName));
+            }
+        }
+    }
+
     private String returnApplicationLabel(ApplicationInfo applicationInfo) {
         String packageName = applicationInfo.packageName;
 
@@ -658,7 +723,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         List<ComponentName> componentNameList = new ArrayList<>();
         getPackageManager().getPreferredActivities(intentFilterList, componentNameList, null);
         for (ComponentName componentName : componentNameList) {
-            Log.d(Tag, "\tCompononent name:  " + componentName);
+            //Log.d(Tag, "\tCompononent name:  " + componentName);
             if (myApplicationPackageName.equals(componentName.getPackageName()))
                 return true;
         }
