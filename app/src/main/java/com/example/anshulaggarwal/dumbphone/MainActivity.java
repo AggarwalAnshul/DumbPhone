@@ -469,7 +469,12 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
                             /*the application corresponding to this newButton has  not been selected yet*/
                             sqLiteDatabase = openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null);
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            AlertDialog.Builder builder;
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                builder = new AlertDialog.Builder(MainActivity.this, R.style.CustomDialogTheme);
+                            } else {
+                                builder = new AlertDialog.Builder(MainActivity.this);
+                            }
                             builder.setTitle("Choose another application");
                             final ArrayList<String> myApplicationLabelList = new ArrayList<>();
 
