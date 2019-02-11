@@ -23,7 +23,10 @@ import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.FontsContract;
 import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.res.FontResourcesParserCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -155,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         ConstraintLayout constraintLayout = (ConstraintLayout) findViewById(R.id.constraintLayout);
         SharedPreferences sharedPreferencesHourRedColor = PreferenceManager.getDefaultSharedPreferences(this);
         Boolean hour_color_is_red = sharedPreferencesHourRedColor.getBoolean("hour_color", Boolean.FALSE); /*False is default*/
-
+        Boolean stylized_font = PreferenceManager.getDefaultSharedPreferences(MainActivity.this).getBoolean("font_setting", Boolean.FALSE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         APPLICATION_THEME = sharedPreferences.getString("colorMode", DARK_THEME);
 
@@ -185,6 +188,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }, 10);
 
 
+        if(stylized_font.equals(Boolean.TRUE)){
+            Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.open_sans);
+            tv_currentTimeHour.setTypeface(typeface);
+            tv_currentTimeMinutes.setTypeface(typeface);
+            tv_currentTimeSeparator.setTypeface(typeface);
+        }
+        tv_currentTimeHour.setTextColor(Color.RED);
         if (APPLICATION_THEME.equals(DARK_THEME)) {
             btn_settings.setBackgroundColor(Color.TRANSPARENT);
             tv_currentDate.setBackgroundColor(Color.BLACK);
