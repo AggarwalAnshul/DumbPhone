@@ -2,8 +2,6 @@ package com.example.anshulaggarwal.dumbphone;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,7 +11,6 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
@@ -21,22 +18,16 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
-import android.os.PowerManager;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v4.view.KeyEventDispatcher;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -46,22 +37,15 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-
-import javax.security.auth.callback.PasswordCallback;
 
 import static com.example.anshulaggarwal.dumbphone.passcode.LOCKMODE_DATA_TABLE_COLUMN_1;
 import static com.example.anshulaggarwal.dumbphone.passcode.LOCKMODE_DATA_TABLE_COLUMN_2;
@@ -271,8 +255,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 newButton.setText(dbRetrievedApplicationLabel);
             } else {
                 newButton.setText("Set Application " + (button_count + 1));
-                Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.prata_regular);
-                newButton.setTypeface(typeface);
+              /*  Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.prata_regular);
+                newButton.setTypeface(typeface);*/
             }
             /*---------------------------------------------------------------------*/
 
@@ -335,7 +319,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                             {
                                 Log.d(Tag, "In here...:");
                                 /*the application corresponding to this newButton has  not been selected yet*/
-                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                /*overriding the default look of alert dialogue*/
+                                AlertDialog.Builder builder;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                                    builder = new AlertDialog.Builder(MainActivity.this, R.style.CustomDialogTheme);
+                                } else {
+                                    builder = new AlertDialog.Builder(MainActivity.this);
+                                }
+
                                 builder.setTitle("Choose an application");
                                 final ArrayList<String> myApplicationLabelList = new ArrayList<>();
 
@@ -423,8 +414,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                                         Log.d(Tag, "Query executed for storing the package name for the button: " + finalButton_count + " PACKAGE: " + buttonPackageName + " LABEL: " + buttonLabel + "\n");
                                         Toast.makeText(MainActivity.this, "" + buttonLabel + " selected!", Toast.LENGTH_SHORT).show();
                                         newButton.setText(buttonLabel);
-                                        Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.prata_regular);
-                                        newButton.setTypeface(typeface);
+                                      /*  Typeface typeface = ResourcesCompat.getFont(MainActivity.this, R.font.prata_regular);
+                                        newButton.setTypeface(typeface);*/
                                     }
                                 });
                                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -806,7 +797,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     private void changeLockMode(final Boolean lockModes) {
-      //  Toast.makeText(this, "lockModes" + lockModes, Toast.LENGTH_LONG).show();
+        //  Toast.makeText(this, "lockModes" + lockModes, Toast.LENGTH_LONG).show();
         Log.d(Tag, "lockModes: " + lockModes);
         if (lockModes == Boolean.FALSE) {
             /*creating the password gateway here*/
@@ -850,6 +841,4 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }
         sqLiteDatabase.close();
     }
-
-
 }

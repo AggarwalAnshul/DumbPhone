@@ -12,4 +12,14 @@ prevent the app from crashing due to the effect of fragment shared preferance ba
  -->
     </style>
 
+    <!--Styling theme for the builder custom design-->
+    <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!--buttons color-->
+        <item name="colorAccent">@android:color/black</item>
+        <!--title and message color-->
+        <item name="android:textColorPrimary">@android:color/black</item>
+        <!--dialog background-->
+        <item name="android:windowBackground">@drawable/background_dialog</item>
+    </style>
+
 </resources>
