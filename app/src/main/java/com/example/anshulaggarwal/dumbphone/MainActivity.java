@@ -153,9 +153,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         /*------------------------ Getting theme shared preference --------------------------*/
         ConstraintLayout constraintLayout = (ConstraintLayout) findViewById(R.id.constraintLayout);
-
         SharedPreferences sharedPreferencesHourRedColor = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean hour_color_is_red = sharedPreferencesHourRedColor.getBoolean("hour_color", Boolean.TRUE);
+        Boolean hour_color_is_red = sharedPreferencesHourRedColor.getBoolean("hour_color", Boolean.FALSE); /*False is default*/
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         APPLICATION_THEME = sharedPreferences.getString("colorMode", DARK_THEME);
@@ -175,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         tv_currentDate = (TextView) findViewById(R.id.tv_currentDate);
         tv_currentTimeHour = (TextView) findViewById(R.id.tv_currentTimeHour);
         tv_currentTimeSeparator = (TextView) findViewById(R.id.tv_currentTimeSeparator);
-        tv_currentTimeHour.setTextColor(Color.RED);
+        tv_currentTimeHour.setTextColor(Color.BLACK);
         final Handler someHandler = new Handler(getMainLooper());
         someHandler.postDelayed(new Runnable() {
             @Override
