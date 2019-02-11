@@ -122,7 +122,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         }*/
 
         /*-------------------- Checking if this is the default application -----------------------*/
-        if (isMyApplicationDefault() == Boolean.FALSE) {
+        SharedPreferences diallerPerference = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        Boolean show_dialler = diallerPerference.getBoolean("dialler_setting", Boolean.TRUE);
+        //Log.d(Tag, "dialler Preference changed to: "+diallerPerference);
+        if (isMyApplicationDefault() == Boolean.FALSE ||
+                   show_dialler.equals(Boolean.FALSE) ) {
             btn_dialler.setEnabled(false);
             btn_dialler.setVisibility(View.INVISIBLE);
             Log.d(Tag, "The Application is not Default");
